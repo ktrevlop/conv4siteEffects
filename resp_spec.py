@@ -1,3 +1,4 @@
+#https://github.com/dertuncay/Response-Spectra
 from scipy.linalg import expm
 from numpy.linalg import pinv
 import numpy as np
