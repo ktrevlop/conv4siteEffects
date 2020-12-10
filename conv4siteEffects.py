@@ -13,7 +13,7 @@ The script initially reads the hazard curves in a .hdf5 file created by the
 OpenQuane Engine. Then it computes the new hazard curves through convolution.
 
 The versions of the pieces of software that were used:
-Spyder 3.3.6, Python 3.7.4 - IPython 7.8.0, OpenQuane Engine version 3.7.1,
+Spyder 3.3.6, Python 3.7.4 - IPython 7.8.0, OpenQuane Engine version 3.10,
 h5py 2.9.0, numpy 1.16.5, scipy 1.3.1, pandas 0.25.1, glob2 0.7
 """
 
@@ -26,8 +26,7 @@ from scipy.stats import norm
 from scipy.optimize import curve_fit
 
 # Enter the path to the .hdf5 file
-path2files='C:\\Users\\KT251707\\oqdata\\'
-#path2files='D:\\Desktop\\Site_effects_in_PSHA\\TST_site_Classical_PSHA\\'
+path2files='C:\\Users\\User1\\oqdata
 # Enter the filename of the .hdf5 file created by the Classical PSHA
 hdf5FileName = 'calc_59.hdf5'
 file2read = path2files+hdf5FileName
@@ -98,8 +97,7 @@ for j in range(len(periods4hazCurves)):
 
 # Enter the folder where the files with the time-histories are found.
 # Put all those files in this folder
-path2accTHist = 'C:\\Users\\KT251707\\Documents\\CEA Cadarache\\Hazard Analysis\\Site_effects_in_PSHA\\TST_site\\TST_site_20GMs_20201002b'
-#path2accTHist = 'D:\\Desktop\\Site_effects_in_PSHA\\TST_site\\TST_site_20GMs_20201002b'
+path2accTHist = 'C:\\Users\\User1\\ground_response_inp_out'
 
 
 # The filenames of the input time-histories.
