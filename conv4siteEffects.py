@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Konstantinos Trevlopoulos
-Last update: 02.10.2020
+Last update: 10.12.2020
 
 This script implements the procedure described in the section "Convolution:
 AF( f ) Dependent on Sra( f )" in Bazzurro and Cronell (2004).
@@ -23,11 +23,13 @@ import pandas as pd
 import glob
 from resp_spec import *
 from scipy.stats import norm
+from scipy.optimize import curve_fit
 
 # Enter the path to the .hdf5 file
-path2files='C:\\Users\\User1\\oqdata
+path2files='C:\\Users\\KT251707\\oqdata\\'
+#path2files='D:\\Desktop\\Site_effects_in_PSHA\\TST_site_Classical_PSHA\\'
 # Enter the filename of the .hdf5 file created by the Classical PSHA
-hdf5FileName = 'calc_20201002.hdf5'
+hdf5FileName = 'calc_59.hdf5'
 file2read = path2files+hdf5FileName
 f = h5py.File(file2read, "r")
 
@@ -63,7 +65,12 @@ for j in periods4hazCurves:
 #freq4hazCurves.reverse(periods4hazCurves)
         
         
-
+# In order to generate a .csv file which can be used to apply the convolution
+# using the OpenQuake Engine, make sure that the intensity levels for all
+# intensity measures in the PSHA are the same. This needs to be done because
+# each line in the .csv file has the same intensity level for all intensity
+# measures. Luckily, this was done in the PSHA that generated the .hdf5 file,
+# which is used in this example
 imLevels4hazCurves = list()
 for j in range(len(oqparam_name)):
     if oqparam_name[j][0:12] == 'hazard_imtls':
@@ -91,7 +98,9 @@ for j in range(len(periods4hazCurves)):
 
 # Enter the folder where the files with the time-histories are found.
 # Put all those files in this folder
-path2accTHist = 'C:\\Users\\User1\\ground_response_inp_out'
+path2accTHist = 'C:\\Users\\KT251707\\Documents\\CEA Cadarache\\Hazard Analysis\\Site_effects_in_PSHA\\TST_site\\TST_site_20GMs_20201002b'
+#path2accTHist = 'D:\\Desktop\\Site_effects_in_PSHA\\TST_site\\TST_site_20GMs_20201002b'
+
 
 # The filenames of the input time-histories.
 # ATTENTION:
@@ -156,39 +165,45 @@ for j in range(len(periods4hazCurves)):
 # This term can be approximately derived by differentiating
 # the rock-hazard curve in discrete or numerical form."
 # However, the differentiation of a typical hazard curve gives negative values
-# and negative values are not probabilities. On the other hand, the complement
-# of the hazard curve looks like a CDF and its differentiation gives a curve
-# that looks like a PDF. The pX(xj) in the paper is a function that looks like
-# a PDF. Therefore, we are differentiating the complement of the hazard curve.
+# and negative values are not probabilities. On the other hand, the absolute
+# of the result of the differentiation looks like a PDF. The pX(xj) in the
+# paper is a function that looks like a PDF. Therefore, we are differentiating
+# the complement of the hazard curve.
 diffExProb4hazCurves = list()
+#for j in range(len(exProb4hazCurves)):
+#        diffExProb4hazCurves.append(np.gradient(1-exProb4hazCurves[j].copy(),
+#                            imLevels4hazCurves[j]))
 for j in range(len(exProb4hazCurves)):
-        diffExProb4hazCurves.append(np.gradient(1-exProb4hazCurves[j].copy(),
-                            imLevels4hazCurves[j]))
+        diffExProb4hazCurves.append( np.absolute( np.gradient( exProb4hazCurves[j].copy(),
+                            imLevels4hazCurves[j]) ) )
 
 
 
 # Compute the function G_{Y|X}(z/x|x) in Equation 4
+medians4oqe = np.zeros( (len(imLevels4hazCurves[0]), len(periods4hazCurves) ) )
+dispersion4oqe = np.zeros( (len(imLevels4hazCurves[0]), len(periods4hazCurves) ) )
 funGeq4 = list()
 xValues = list()
 for j in range(len(periods4hazCurves)):
     xValues.append( np.zeros(len(timeHistorInp)) )
-    yValues = ampliFun[j]
+    yValues = ampliFun[j].copy()
     funGeq4.append(list())
     for n in range(len(timeHistorInp)):
         xValues[j][n] = respSpectraInp[n][j].copy()
     for m in range(len(imLevels4hazCurves[j])):
+        dispersion = 0;
         # The thresholds, i.e. the amplification ratios
-        yThresholds = imLevels4hazCurves[j][m] / imLevels4hazCurves[j]
-        p = np.polyfit(np.log(xValues[j]), np.log(yValues), 1);
-        c = p[0];
-        lnb = p[1];
-        lnD = lnb + c * np.log(xValues[j]);
-        epsilon = np.log(yValues) - lnD;
-        dispersion = np.std(epsilon) / abs(c);
-        b = np.exp( lnb );
-        medians = np.exp( np.log( yThresholds / b ) / abs(c) );
-        funGeq4[-1].append(norm.sf(np.log(imLevels4hazCurves[j][m]),
-               np.log(medians), dispersion))
+        yThresholds = imLevels4hazCurves[j][m].copy() / imLevels4hazCurves[j].copy()
+        p = np.polyfit(np.log(xValues[j]), np.log(yValues), 2);
+        lnY = p[0]*(np.log(xValues[j])**2 + p[1]*(np.log(xValues[j]) + p[2];
+        epsilon = np.log(yValues.copy()) - lnY.copy();
+        dispersion = np.std( epsilon.copy() );
+        b = np.exp( lnb.copy() );
+        medians = np.exp( np.log( yThresholds.copy() / b.copy() ) / abs(c.copy()) );
+        funGeq4[-1].append(norm.sf(np.log(imLevels4hazCurves[j][m].copy()),
+               np.log(medians.copy()), dispersion.copy()))
+        medians4oqe[m,j] = np.exp( lnb.copy() + c.copy() * np.log( imLevels4hazCurves[j][m].copy() ) )
+        dispersion4oqe[m,j] = dispersion.copy()
 
 
 
@@ -198,25 +213,72 @@ for j in range(len(periods4hazCurves)):
 exProb4hazCurvesNew = list()
 for j in range(len(periods4hazCurves)):
     exProb4hazCurvesNew.append( np.zeros(len(imLevels4hazCurves[j])) )
-    # The Equation 2 has dx in the integral, but there is no \Delta x at the
-    # end of Equation 3. This term (deltaIM) needs to be at the end of the sum
+    # The Equation 2 has dx in the integral, but there is no Delta\x at the end
+    # of Equation 3. This term (deltaIM) needs to be at the end of the sum
     # (the discretized form of the integral) in Equation 3.
     deltaIM = np.zeros(len(imLevels4hazCurves[j]))
     # Reminder: we used 2nd order finite differences for the gradient
     deltaIM[0] = imLevels4hazCurves[j][1]-imLevels4hazCurves[j][0]
     deltaIM[-1] = imLevels4hazCurves[j][-1]-imLevels4hazCurves[j][-2]
     deltaIM[1:-1] = imLevels4hazCurves[j][2:]-imLevels4hazCurves[j][:-2]
-    deltaIM=deltaIM/2
+    deltaIM = deltaIM.copy() / 2
     for m in range(len(imLevels4hazCurves[j])):
-        exProb4hazCurvesNew[-1][m] = 1 - np.sum(
-                funGeq4[j][m].copy()*diffExProb4hazCurves[j].copy()*deltaIM)
+        exProb4hazCurvesNew[-1][m] = np.sum(
+                (1-funGeq4[j][m].copy())*diffExProb4hazCurves[j].copy()*deltaIM.copy())
 
 
 
 #%%
 # Export the results in .csv files and make figures
+# Work in progress...
 import matplotlib.pyplot as plt
 j = 0
-plt.loglog(imLevels4hazCurves[j]/9.81, exProb4hazCurves[j])
-plt.loglog(imLevels4hazCurves[j]/9.81, exProb4hazCurvesNew[j])
+#j = 2
+#j = 8
+plt.xlim(0.01, 10)
+plt.ylim(0.0001, 1)
+#plt.plot(imLevels4hazCurves[j], exProb4hazCurves[j])
+#plt.plot(imLevels4hazCurves[j], exProb4hazCurvesNew[j])
+plt.loglog(imLevels4hazCurves[j], exProb4hazCurves[j])
+plt.loglog(imLevels4hazCurves[j], exProb4hazCurvesNew[j])
 plt.show()
+
+#j = 0
+#plt.plot(imLevels4hazCurves[j], exProb4hazCurvesNew[j])
+
+
+
+#%%
+# Generate a .csv file with the amplificaiton function
+# which can be used to apply the convolution using the OpenQuake Engine
+
+
+# The .csv file with the amplification
+f1=open('amp4oqe.csv', 'a')
+
+# The name of the site. There is one site in this example
+siteName = 'TST'
+
+# Reminder: the PSHA that generated the results was done for the same intensity
+# measure levels for every intensity measure. That is why we can do this:
+firstLineOfCSV = '#vs30_ref=800' + ','*(2*len( periods4hazCurves ) + 1)
+f1.write(firstLineOfCSV + "\n");
+
+secondLineOfCSV = 'ampcode,level,PGA'
+for j in range( 1, len( periods4hazCurves ) ):
+    secondLineOfCSV = secondLineOfCSV + ',SA(' + str(periods4hazCurves[j]) + ')';
+secondLineOfCSV = secondLineOfCSV + ',sigma_PGA'
+for j in range( 1, len( periods4hazCurves ) ):
+    secondLineOfCSV = secondLineOfCSV + ',sigma_SA(' + str(periods4hazCurves[j]) + ')';
+f1.write(secondLineOfCSV + "\n");
+
+for j in range( len( imLevels4hazCurves[0] ) ):
+    nextLineOfCSV = siteName + ',' + str(imLevels4hazCurves[0][j])
+    for k in range( len( periods4hazCurves ) ):
+        nextLineOfCSV = nextLineOfCSV + ',' + str(medians4oqe[j,k]);
+    for k in range( len( periods4hazCurves ) ):
+        nextLineOfCSV = nextLineOfCSV + ',' + str(dispersion4oqe[j,k]);
+    f1.write(nextLineOfCSV + "\n");
+
+
+f1.close()
