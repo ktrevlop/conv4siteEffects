@@ -166,8 +166,8 @@ for j in range(len(periods4hazCurves)):
 # However, the differentiation of a typical hazard curve gives negative values
 # and negative values are not probabilities. On the other hand, the absolute
 # of the result of the differentiation looks like a PDF. The pX(xj) in the
-# paper is a function that looks like a PDF. Therefore, we are differentiating
-# the complement of the hazard curve.
+# paper is a function that looks like a PDF. Therefore, we are using the
+# the absolute of the gradient of the hazard curve.
 diffExProb4hazCurves = list()
 for j in range(len(exProb4hazCurves)):
         diffExProb4hazCurves.append( np.absolute( np.gradient( exProb4hazCurves[j].copy(),
