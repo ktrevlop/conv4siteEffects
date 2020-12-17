@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Konstantinos Trevlopoulos
-Last update: 10.12.2020
+Last update: 11.12.2020
 
 This script implements the procedure described in the section "Convolution:
 AF( f ) Dependent on Sra( f )" in Bazzurro and Cronell (2004).
@@ -26,9 +26,9 @@ from scipy.stats import norm
 from scipy.optimize import curve_fit
 
 # Enter the path to the .hdf5 file
-path2files='C:\\Users\\User1\\oqdata
+path2files='C:\\Users\\user1\\oqdata\\'
 # Enter the filename of the .hdf5 file created by the Classical PSHA
-hdf5FileName = 'calc_59.hdf5'
+hdf5FileName = 'calc_20201211.hdf5'
 file2read = path2files+hdf5FileName
 f = h5py.File(file2read, "r")
 
@@ -83,12 +83,13 @@ for j in range(len(oqparam_name)):
 # Get the exceedance probabilities for the hazard curves
 tempHcurve = f['hcurves-stats'][:]
 exProb4hazCurves = list()
-pos1=0
+#pos1=0
+#for j in range(len(periods4hazCurves)):
+#    exProb4hazCurves.append( tempHcurve[0][0][
+#            pos1:pos1+len(imLevels4hazCurves[j])] )
+#    pos1 += len(imLevels4hazCurves[j])
 for j in range(len(periods4hazCurves)):
-    exProb4hazCurves.append( tempHcurve[0][0][
-            pos1:pos1+len(imLevels4hazCurves[j])] )
-    pos1 += len(imLevels4hazCurves[j])
-
+    exProb4hazCurves.append( tempHcurve[0][0][j] )
 
 
 #%%  
@@ -97,7 +98,7 @@ for j in range(len(periods4hazCurves)):
 
 # Enter the folder where the files with the time-histories are found.
 # Put all those files in this folder
-path2accTHist = 'C:\\Users\\User1\\ground_response_inp_out'
+path2accTHist = 'C:\\Users\\user1\\site_response_analysis'
 
 
 # The filenames of the input time-histories.
@@ -168,9 +169,6 @@ for j in range(len(periods4hazCurves)):
 # paper is a function that looks like a PDF. Therefore, we are differentiating
 # the complement of the hazard curve.
 diffExProb4hazCurves = list()
-#for j in range(len(exProb4hazCurves)):
-#        diffExProb4hazCurves.append(np.gradient(1-exProb4hazCurves[j].copy(),
-#                            imLevels4hazCurves[j]))
 for j in range(len(exProb4hazCurves)):
         diffExProb4hazCurves.append( np.absolute( np.gradient( exProb4hazCurves[j].copy(),
                             imLevels4hazCurves[j]) ) )
@@ -184,18 +182,20 @@ funGeq4 = list()
 xValues = list()
 for j in range(len(periods4hazCurves)):
     xValues.append( np.zeros(len(timeHistorInp)) )
-    yValues = ampliFun[j].copy()
+    yValues = ampliFun[j]
     funGeq4.append(list())
     for n in range(len(timeHistorInp)):
         xValues[j][n] = respSpectraInp[n][j].copy()
     for m in range(len(imLevels4hazCurves[j])):
         dispersion = 0;
         # The thresholds, i.e. the amplification ratios
-        yThresholds = imLevels4hazCurves[j][m].copy() / imLevels4hazCurves[j].copy()
-        p = np.polyfit(np.log(xValues[j]), np.log(yValues), 2);
-        lnY = p[0]*(np.log(xValues[j])**2 + p[1]*(np.log(xValues[j]) + p[2];
-        epsilon = np.log(yValues.copy()) - lnY.copy();
-        dispersion = np.std( epsilon.copy() );
+        yThresholds = imLevels4hazCurves[j][m] / imLevels4hazCurves[j]
+        p = np.polyfit(np.log(xValues[j]), np.log(yValues), 1);
+        c = p[0].copy();
+        lnb = p[1].copy();
+        lnD = lnb.copy() + c.copy() * np.log(xValues[j].copy());
+        epsilon = np.log(yValues.copy()) - lnD.copy();
+        dispersion = np.std(epsilon.copy()) / abs(c.copy());
         b = np.exp( lnb.copy() );
         medians = np.exp( np.log( yThresholds.copy() / b.copy() ) / abs(c.copy()) );
         funGeq4[-1].append(norm.sf(np.log(imLevels4hazCurves[j][m].copy()),
@@ -231,10 +231,9 @@ for j in range(len(periods4hazCurves)):
 # Work in progress...
 import matplotlib.pyplot as plt
 j = 0
-#j = 2
-#j = 8
-plt.xlim(0.01, 10)
-plt.ylim(0.0001, 1)
+#j = 6
+plt.xlim(0.0001, 10)
+plt.ylim(0.00001, 1)
 #plt.plot(imLevels4hazCurves[j], exProb4hazCurves[j])
 #plt.plot(imLevels4hazCurves[j], exProb4hazCurvesNew[j])
 plt.loglog(imLevels4hazCurves[j], exProb4hazCurves[j])
