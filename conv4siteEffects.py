@@ -18,7 +18,7 @@ h5py 2.9.0, numpy 1.16.5, scipy 1.3.1, pandas 0.25.1, glob2 0.7
 
 DISCLAIMER
 
-This software is made available as a prototype implementation  for the purpose
+This software is made available as a prototype implementation for the purpose
 of open collaboration and in the hope that it will be useful. It is not
 developed to design standards, nor subject to critical review by professional
 software developers. It is therefore distributed WITHOUT ANY WARRANTY; without
