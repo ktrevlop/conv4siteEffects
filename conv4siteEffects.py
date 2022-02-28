@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Konstantinos Trevlopoulos
-Last update: 11.12.2020
+Last update: 28.02.2021
 
 This script implements the procedure described in the section "Convolution:
 AF( f ) Dependent on Sra( f )" in Bazzurro and Cronell (2004).
