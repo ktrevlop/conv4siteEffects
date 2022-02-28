@@ -1,7 +1,7 @@
 # conv4siteEffects
 Konstantinos Trevlopoulos
 
-Last update: 28.02.2021
+Last update: 28.02.2022
 
 This script implements the procedure described in the section "Convolution:
 AF( f ) Dependent on Sra( f )" in Bazzurro and Cornell (2004).
