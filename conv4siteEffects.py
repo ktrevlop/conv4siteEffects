@@ -26,7 +26,7 @@ from scipy.stats import norm
 from scipy.optimize import curve_fit
 
 # Enter the path to the .hdf5 file
-path2files='C:\\Users\\user1\\oqdata\\'
+path2files='.\\'
 # Enter the filename of the .hdf5 file created by the Classical PSHA
 hdf5FileName = 'calc_20201211.hdf5'
 file2read = path2files+hdf5FileName
@@ -98,7 +98,7 @@ for j in range(len(periods4hazCurves)):
 
 # Enter the folder where the files with the time-histories are found.
 # Put all those files in this folder
-path2accTHist = 'C:\\Users\\user1\\site_response_analysis'
+path2accTHist = '.\\TST_site_20GMs_20201211'
 
 
 # The filenames of the input time-histories.
@@ -158,26 +158,17 @@ for j in range(len(periods4hazCurves)):
 
 #%%  
 # Differentiate the rock-hazard curves.
-# This is required in order to compute Equation 3. The paper says
-# "The term pX(xj) represents the probability that the rockinput
-# level is equal to (or better, in the neighborhood of ) xj.
-# This term can be approximately derived by differentiating
-# the rock-hazard curve in discrete or numerical form."
-# However, the differentiation of a typical hazard curve gives negative values
-# and negative values are not probabilities. On the other hand, the absolute
-# of the result of the differentiation looks like a PDF. The pX(xj) in the
-# paper is a function that looks like a PDF. Therefore, we are using the
-# the absolute of the gradient of the hazard curve.
+# This is required in order to compute Equation 3.
 diffExProb4hazCurves = list()
 for j in range(len(exProb4hazCurves)):
-        diffExProb4hazCurves.append( np.absolute( np.gradient( exProb4hazCurves[j].copy(),
-                            imLevels4hazCurves[j]) ) )
+        diffExProb4hazCurves.append( np.absolute( \
+            np.gradient( exProb4hazCurves[j].copy(), imLevels4hazCurves[j]) ) )
 
 
 
 # Compute the function G_{Y|X}(z/x|x) in Equation 4
 medians4oqe = np.zeros( (len(imLevels4hazCurves[0]), len(periods4hazCurves) ) )
-dispersion4oqe = np.zeros( (len(imLevels4hazCurves[0]), len(periods4hazCurves) ) )
+dispersion4oqe = np.zeros((len(imLevels4hazCurves[0]), len(periods4hazCurves)))
 funGeq4 = list()
 xValues = list()
 for j in range(len(periods4hazCurves)):
@@ -195,12 +186,14 @@ for j in range(len(periods4hazCurves)):
         lnb = p[1].copy();
         lnD = lnb.copy() + c.copy() * np.log(xValues[j].copy());
         epsilon = np.log(yValues.copy()) - lnD.copy();
-        dispersion = np.std(epsilon.copy()) / abs(c.copy());
+        dispersion = np.std(epsilon.copy(), ddof=2) / abs(c.copy());
         b = np.exp( lnb.copy() );
-        medians = np.exp( np.log( yThresholds.copy() / b.copy() ) / abs(c.copy()) );
+        medians = np.exp( np.log( yThresholds.copy() \
+                                 / b.copy() ) / abs(c.copy()) );
         funGeq4[-1].append(norm.sf(np.log(imLevels4hazCurves[j][m].copy()),
                np.log(medians.copy()), dispersion.copy()))
-        medians4oqe[m,j] = np.exp( lnb.copy() + c.copy() * np.log( imLevels4hazCurves[j][m].copy() ) )
+        medians4oqe[m,j] = np.exp( lnb.copy() + c.copy() \
+                            * np.log( imLevels4hazCurves[j][m].copy() ) )
         dispersion4oqe[m,j] = dispersion.copy()
 
 
@@ -222,7 +215,8 @@ for j in range(len(periods4hazCurves)):
     deltaIM = deltaIM.copy() / 2
     for m in range(len(imLevels4hazCurves[j])):
         exProb4hazCurvesNew[-1][m] = np.sum(
-                (1-funGeq4[j][m].copy())*diffExProb4hazCurves[j].copy()*deltaIM.copy())
+                (1-funGeq4[j][m].copy())*diffExProb4hazCurves[j].copy() \
+                    *deltaIM.copy() )
 
 
 
@@ -232,16 +226,29 @@ for j in range(len(periods4hazCurves)):
 import matplotlib.pyplot as plt
 j = 0
 #j = 6
-plt.xlim(0.0001, 10)
-plt.ylim(0.00001, 1)
+
+fig1, ax1 = plt.subplots()
+ax1.axis([1e-4,1e1,1e-5,1e0]) # define the limits of the axes
+ax1.grid(True)
+
+
 #plt.plot(imLevels4hazCurves[j], exProb4hazCurves[j])
 #plt.plot(imLevels4hazCurves[j], exProb4hazCurvesNew[j])
-plt.loglog(imLevels4hazCurves[j], exProb4hazCurves[j])
-plt.loglog(imLevels4hazCurves[j], exProb4hazCurvesNew[j])
-plt.show()
 
-#j = 0
-#plt.plot(imLevels4hazCurves[j], exProb4hazCurvesNew[j])
+ax1.plot(imLevels4hazCurves[j], exProb4hazCurves[j], \
+               linestyle='-', color=(0,0,0), \
+               marker='', markeredgecolor=(0,0,0), markerfacecolor=(0,0,0), \
+               markersize='4', label=('Bedrock') )
+ax1.plot(imLevels4hazCurves[j], exProb4hazCurvesNew[j], \
+               linestyle='-', color=(0,0,1), \
+               marker='', markeredgecolor=(0,0,0), markerfacecolor=(0,0,0), \
+               markersize='4', label=('Surface') )
+ax1.set_xscale('log')
+ax1.set_yscale('log')
+ax1.set_xlabel('x')
+ax1.set_ylabel('P(IM>x)')
+ax1.set_title("Hazard Curves")
+ax1.legend(loc='best')
 
 
 
@@ -263,10 +270,12 @@ f1.write(firstLineOfCSV + "\n");
 
 secondLineOfCSV = 'ampcode,level,PGA'
 for j in range( 1, len( periods4hazCurves ) ):
-    secondLineOfCSV = secondLineOfCSV + ',SA(' + str(periods4hazCurves[j]) + ')';
+    secondLineOfCSV = secondLineOfCSV + ',SA(' \
+        + str(periods4hazCurves[j]) + ')';
 secondLineOfCSV = secondLineOfCSV + ',sigma_PGA'
 for j in range( 1, len( periods4hazCurves ) ):
-    secondLineOfCSV = secondLineOfCSV + ',sigma_SA(' + str(periods4hazCurves[j]) + ')';
+    secondLineOfCSV = secondLineOfCSV + ',sigma_SA(' \
+        + str(periods4hazCurves[j]) + ')';
 f1.write(secondLineOfCSV + "\n");
 
 for j in range( len( imLevels4hazCurves[0] ) ):
