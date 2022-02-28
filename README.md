@@ -1,5 +1,6 @@
 # conv4siteEffects
 Konstantinos Trevlopoulos
+
 Last update: 28.02.2021
 
 This script implements the procedure described in the section "Convolution:
