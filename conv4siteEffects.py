@@ -26,7 +26,7 @@ even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
 PURPOSE. See the GNU General Public License for more details:
 https://www.gnu.org/licenses/gpl-3.0.html
 
-The author of the software, assumes no liability for use of the software.
+The author of the software assumes no liability for use of the software.
 
 """
 
@@ -259,12 +259,42 @@ ax1.plot(imLevels4hazCurves[j], exProb4hazCurvesNew[j], \
 ax1.set_xscale('log')
 ax1.set_yscale('log')
 ax1.set_xlabel('x')
-ax1.set_ylabel('P(IM>x)')
+ax1.set_ylabel('P(IM>x,t=1 year)')
 ax1.set_title("Hazard Curves")
 ax1.legend(loc='best')
 
 
 
+#%% Checks
+
+# Return period for P=10% exceedance in t=50 years
+T_R=-50/np.log(1-0.1)
+pga = np.interp(np.exp(-1/T_R*1), 1-exProb4hazCurves[0], \
+                imLevels4hazCurves[0])
+print("PGA at the bedrock for a mean return period of "+f"{T_R:.0f}" \
+      + " years: " + f"{pga:.2f}" +" g")
+pga = np.interp(np.exp(-1/T_R*1), 1-exProb4hazCurvesNew[0], \
+                imLevels4hazCurves[0])
+print("PGA at the ground's surface for a mean return period of "+f"{T_R:.0f}" \
+      + " years: " + f"{pga:.2f}" +" g")
+
+# Return period for P=1% exceedance in t=50 years
+T_R=-50/np.log(1-0.01)
+pga = np.interp(np.exp(-1/T_R*1), 1-exProb4hazCurves[0], \
+                imLevels4hazCurves[0])
+print("PGA at the bedrock for a mean return period of "+f"{T_R:.0f}" \
+      + " years: " + f"{pga:.2f}" +" g")
+pga = np.interp(np.exp(-1/T_R*1), 1-exProb4hazCurvesNew[0], \
+                imLevels4hazCurves[0])
+print("PGA at the ground's surface for a mean return period of "+f"{T_R:.0f}" \
+      + " years: " + f"{pga:.2f}" +" g")
+
+# PGA at the bedrock for a mean return period of 475 years: 0.32 g
+# PGA at the ground's surface for a mean return period of 475 years: 0.51 g
+# PGA at the bedrock for a mean return period of 4975 years: 0.79 g
+# PGA at the ground's surface for a mean return period of 4975 years: 1.55 g
+
+    
 #%%
 # Generate a .csv file with the amplificaiton function
 # which can be used to apply the convolution using the OpenQuake Engine
