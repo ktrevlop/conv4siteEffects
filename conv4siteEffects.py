@@ -258,7 +258,7 @@ ax1.plot(imLevels4hazCurves[j], exProb4hazCurvesNew[j], \
                markersize='4', label=('Surface') )
 ax1.set_xscale('log')
 ax1.set_yscale('log')
-ax1.set_xlabel('x')
+ax1.set_xlabel('x (g)')
 ax1.set_ylabel('P(IM>x,t=1 year)')
 ax1.set_title("Hazard Curves")
 ax1.legend(loc='best')
