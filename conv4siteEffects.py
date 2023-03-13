@@ -105,6 +105,7 @@ for j in range(len(periods4hazCurves)):
     exProb4hazCurves.append( tempHcurve[0][0][j] )
 
 
+
 #%%  
 # Read the acceleration time-histories at the rock outcrop (input) and at the
 # surface of the ground (output), and compute their response spectra
@@ -234,8 +235,9 @@ for j in range(len(periods4hazCurves)):
 
 
 #%%
+# WORK IN PROGRESS
 # Export the results in .csv files and make figures
-# Work in progress...
+
 import matplotlib.pyplot as plt
 j = 0
 #j = 6
@@ -265,7 +267,9 @@ ax1.legend(loc='best')
 
 
 
-#%% Checks
+#%%
+# WORK IN PROGRESS
+# Checks
 
 # Return period for P=10% exceedance in t=50 years
 T_R=-50/np.log(1-0.1)
@@ -295,7 +299,9 @@ print("PGA at the ground's surface for a mean return period of "+f"{T_R:.0f}" \
 # PGA at the ground's surface for a mean return period of 4975 years: 1.55 g
 
     
+
 #%%
+# WORK IN PROGRESS
 # Generate a .csv file with the amplificaiton function
 # which can be used to apply the convolution using the OpenQuake Engine
 
@@ -329,5 +335,5 @@ for j in range( len( imLevels4hazCurves[0] ) ):
         nextLineOfCSV = nextLineOfCSV + ',' + str(dispersion4oqe[j,k]);
     f1.write(nextLineOfCSV + "\n");
 
-
+# Close the csv file
 f1.close()
